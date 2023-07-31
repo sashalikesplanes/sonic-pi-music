@@ -1,0 +1,28 @@
+use_bpm 120
+
+live_loop :kickdrum do
+  sample :bd_haus, amp: 1
+  sleep 1
+end
+
+live_loop :snare do
+  sleep 1
+  sample :drum_snare_soft, amp: 5
+  sleep 1
+end
+
+live_loop :pulputus do
+  with_fx :reverb, amp: 1, mix: 0.25 do
+    use_synth :tb303
+    nuotti = (chord :C2, :minor).choose
+    play nuotti, cutoff: rrand(10, 130), release: 0.1, amp: 0.7, release: 0.1
+    sleep 0.25
+  end
+end
+
+live_loop :bd, sync: :clock0 do
+  tick
+  sample :bass_drop_c if spread(4, 16).look
+  
+  sleep 0.25
+end

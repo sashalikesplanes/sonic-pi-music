@@ -1,0 +1,22 @@
+set :bpm, 120
+
+live_loop :baseline do
+  use_bpm get(:bpm)
+  with_fx :reverb, room: 5 do
+    sample :bd_haus, amp: 2, rate: 1.5
+  end
+  sleep 1
+end
+
+live_loop :kick do
+  use_bpm get(:bpm)
+  # sample :bd_boom, amp: 4, rate: 2
+  sleep 4
+end
+
+use_synth :tb303
+live_loop :squelch do
+  # n = (ring :e1, :e2, :e3).tick
+  # play n, release: 0.125, cutoff: 100, res: 0.8, wave: 0, amp: 10
+  sleep 0.125
+end
