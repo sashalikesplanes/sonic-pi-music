@@ -1,9 +1,9 @@
-use_bpm 130
+use_bpm 132
 
 master = ring(0.3)
 kick_v = 1
-acid_v = 0.5
-acid_sync_v = 1
+acid_v = 0
+acid_sync_v = 0
 
 # 4 on the floor kick
 live_loop :kick do
