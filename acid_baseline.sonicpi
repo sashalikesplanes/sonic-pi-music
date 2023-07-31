@@ -1,0 +1,40 @@
+use_bpm 130
+
+master = ring(0.3)
+kick_v = 1
+acid_v = 0.5
+acid_sync_v = 1
+
+# 4 on the floor kick
+live_loop :kick do
+  if (spread 1, 4).tick then
+    sample :bd_klub, amp: kick_v * master.look
+  end
+  sleep 0.25
+end
+
+syncopation_beats = (stretch [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0], 1)
+live_loop :acid_syncopation, sync: :kick do
+  with_fx :bpf, centre: :ds2, res: 0.6, mix: 0.5 do
+    with_synth :saw do
+      play :ds2, amp: acid_sync_v * syncopation_beats.tick * master.look, attack: 0.2, release: 0.8, cutoff: rrand(50, 80)
+    end
+  end
+  sleep 0.5
+end
+
+acids_cutoffs = range(64, 96, 1).mirror
+acid_notes = (stretch [
+                          :ds2, :ds2, :e3, :ds2,
+                          :ds2, :e3, :ds2, :ds3,
+                          :cs3, :e3, :ds2, :ds2,
+                          :ds2, :e3, :ds3, :cs3
+                          ], 1)
+live_loop :acid, sync: :kick do
+    with_fx :bpf, centre: :ds3, res: 0.6, mix: 0.5 do
+      with_synth :tb303 do
+        play acid_notes.tick, amp: acid_v * master.look, release: 0.15, cutoff: acids_cutoffs.tick
+      end
+    end
+  sleep 0.25
+end
