@@ -1,0 +1,19 @@
+use_debug false
+use_bpm 130
+
+fadein = (ramp *range(0, 1, 0.01))
+
+live_loop :kick do
+  if (spread 1, 4).tick then # 4th on the floor
+    sample :bd_tek, amp: fadein.look, cutoff: 80
+  else
+    sample :bd_808, amp: fadein.look * 4
+  end
+  sleep 0.25 # 1/16th for the heartbeat
+end
+
+# use_synth :tb303
+# live_loop :acid_bass do
+#   play 69, release: 0.125, amp: 0.5
+#   sleep 0.25
+# end
