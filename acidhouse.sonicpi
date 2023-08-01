@@ -3,6 +3,9 @@
 
 use_bpm 110
 
+test = [1,0,0,0] * 4
+print test
+
 with_fx :distortion, mix: 0.06 do
   with_fx :nrhpf, mix: 0.05 do
 

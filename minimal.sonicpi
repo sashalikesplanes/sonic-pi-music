@@ -1,0 +1,38 @@
+# https://www.musicradar.com/news/beat-building-how-to-make-berlin-techno-beat
+use_bpm 132
+set_volume! 0.5
+
+pulse_beats       = [2,0,0,0] + [1,0,0,0] * 7 # 4/4 on  notes
+hat_beats        = [0,1,0,2] * 7 + [0,1,0,1]
+# This is polymeter
+conga_beats       = [2,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1] # 5/4 on 8th notes
+# Syncopation time
+sync_beats        = [0,1,1,0,0,0,1,1] * 4 # 8th notes
+
+live_loop :eight do
+  sleep 8 # 8 beats
+end
+
+# fadeout example:
+# set amp = (ramp *line(1, 0, inclusive: true, steps: 64)).tick(:out3)
+# ensuring that the tick name is unique to start a fresh count
+
+sync :eight
+with_fx :distortion, mix: 0.7 do
+  with_fx :hpf, cutoff: 10 do
+
+    live_loop :kick, sync: :eight do
+      amp = 5
+      tick
+      sample :bd_haus, amp: amp, rate: 0.7 if (look % 2) == 1
+      sample :hat_cab, amp: 2 * amp, rate: 0.5 if look % 2 == 0
+      sleep 1
+    end
+
+    live_loop :synco, sync: :eight do
+      amp = 0
+      sample :drum_tom_mid_hard, amp: amp, rate: 0.8 if [0,1,0,0,0,1,1].ring.tick == 1
+      sleep 1
+    end
+  end
+end

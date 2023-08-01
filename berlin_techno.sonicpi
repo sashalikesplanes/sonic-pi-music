@@ -2,45 +2,94 @@
 use_bpm 132
 set_volume! 0.5
 
-pulse_beats       = [2,0,1,0,1,0,1,0] # 4/4 on 8th notes
-clap_beats        = [0,0,1,0,0,0,1,0] 
-# Is this syncopation??
+pulse_beats       = [2,0,0,0] + [1,0,0,0] * 7 # 4/4 on  notes
+hat_beats        = [0,1,0,2] * 7 + [0,1,0,1]
+# This is polymeter
 conga_beats       = [2,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1] # 5/4 on 8th notes
+# Syncopation time
+sync_beats        = [0,1,1,0,0,0,1,1] * 4 # 8th notes
 
 live_loop :eight do
-  sleep 8
+  sleep 8 # 8 bars
 end
 
+# fadeout example:
+# set amp = (ramp *line(1, 0, inclusive: true, steps: 64)).tick(:out3)
+# ensuring that the tick name is unique to start a fresh count
+cutoff_in = (ramp *(line(0, 50, inclusive: true, steps: 16) + line(50, 100, inclusive: true, steps: 32) + [100] * 16 + [0]))
 sync :eight
-live_loop :kick do
-  beat = pulse_beats.ring.tick
-  sample :bd_haus, amp: 1, rate: 0.8 if beat == 1
-  sample :bd_klub, amp: 4 if beat == 2
-  sleep 0.5
-end
+with_fx :distortion, mix: 0.3 do
+  live_loop :kick do
+    tick
+    with_fx :hpf, cutoff: cutoff_in.tick(:fdafaffsdffadsf) do
+      # pulse 
+      amp = 1
+      beat = pulse_beats.ring.look
+      sample :bd_haus, amp: amp, rate: 0.8 if beat == 1 or beat == 2
+      sample :bd_klub, amp: 4 * amp if beat == 2
 
-live_loop :clap, sync: :kick do
-  beat = clap_beats.ring.tick
-  with_fx(:distortion, mix: 0.5) do
-    sample :perc_snap, amp: 0.5, rate: 0.75 if beat == 1
-    sleep 0.5
-  end
-end
+      # hats 
+      amp = 1
+      beat = hat_beats.ring.look
+      if beat == 1 or beat == 2 then
+        with_fx(:distortion, mix: 0.9) do
+          with_fx(:lpf, cutoff: 80) do
+            sample :hat_snap, amp: amp, rate: 1.5 if beat == 1
+            sample :hat_raw, amp: amp, rate: 1.5 if beat == 2
+          end
+        end
+      end
 
-live_loop :conga, sync: :kick do
-  amp = 2
-  beat = conga_beats.ring.tick
-  with_fx(:reverb, room: 0.5, mix: 0.7, damp: 0.3, amp: 0.75 * amp) do
-    sample :perc_impact1, amp: amp, rate: 1 if beat == 1
-    with_fx(:echo, decay: 0.25, mix: 0.6, phase: 0.25) do
-      sample :perc_impact1, amp: amp, rate: 0.75 if beat == 2
+      # syncopation
+      amp = 1
+      sample :drum_tom_mid_hard, amp: amp * 0.5 if sync_beats.ring.look == 1
+
+      # bassline 
+      amp = 0.2 * 1
+      sample :bass_hard_c, amp: amp, rate: 0.5 if (look % 16) == 0
+
+
+      # now some polymeter 
+      amp = 1
+      beat = conga_beats.ring.look
+      if beat == 1 or beat == 2 then
+        with_fx(:reverb, room: 0.5, mix: 0.7, damp: 0.3, amp: 0.75 * amp) do
+          sample :perc_impact1, amp: amp, rate: 1 if beat == 1
+          with_fx(:echo, decay: 0.25, mix: 0.6, phase: 0.25) do
+            sample :perc_impact1, amp: amp, rate: 0.75 if beat == 2
+          end
+        end
+      end
+
+      sleep 0.25
+    end
+
+    acid_notes = (stretch [
+        :ds2, :ds2, :e3, :ds2,
+        :ds2, :e3, :ds2, :ds3,
+        :cs3, :e3
+        ], 1)
+
+# A cutoff between 60 and 150 sounds good
+# Either an updown sound or just random sound great
+    acids_cutoffs = range(60, 150, 1).mirror
+
+    live_loop :acid2, sync: :kick do
+      amp = 1
+      cutoff = rrand_i(90, 120)
+      note = acid_notes.tick
+
+      with_fx :bpf, centre: :ds3, res: 0.7, mix: 0.7 do
+        with_synth :tb303 do
+          play note, amp: amp, release: 0.15, cutoff: cutoff
+        end
+      end
+      sleep 0.25
     end
   end
-  sleep 0.5
 end
 
 
-# live_loop :four_drums, sync: :sixteen do
-#   sample :bd_tek, amp: 5
-#   sleep 4
-# end
+
+# sleep 7
+# sample :vinyl_backspin, amp: 1
