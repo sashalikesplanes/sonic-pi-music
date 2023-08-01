@@ -1,0 +1,14 @@
+# Classic 4 on the floor pulse
+# with some fx for fatness
+use_bpm 132
+
+live_loop :kick, sync: :sixteen do
+  amp = 1
+  with_fx :nrhpf, cutoff: 40, res: 0.4, mix: 0.3, amp: amp do
+    with_fx :reverb, room: 0.2, mix: 0.3 do
+      sample :bd_haus, amp: 3 * amp
+    end
+  end
+  sleep 1
+end
+

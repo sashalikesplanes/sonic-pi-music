@@ -1,0 +1,46 @@
+# https://www.musicradar.com/news/beat-building-how-to-make-berlin-techno-beat
+use_bpm 132
+set_volume! 0.5
+
+pulse_beats       = [2,0,1,0,1,0,1,0] # 4/4 on 8th notes
+clap_beats        = [0,0,1,0,0,0,1,0] 
+# Is this syncopation??
+conga_beats       = [2,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1] # 5/4 on 8th notes
+
+live_loop :eight do
+  sleep 8
+end
+
+sync :eight
+live_loop :kick do
+  beat = pulse_beats.ring.tick
+  sample :bd_haus, amp: 1, rate: 0.8 if beat == 1
+  sample :bd_klub, amp: 4 if beat == 2
+  sleep 0.5
+end
+
+live_loop :clap, sync: :kick do
+  beat = clap_beats.ring.tick
+  with_fx(:distortion, mix: 0.5) do
+    sample :perc_snap, amp: 0.5, rate: 0.75 if beat == 1
+    sleep 0.5
+  end
+end
+
+live_loop :conga, sync: :kick do
+  amp = 2
+  beat = conga_beats.ring.tick
+  with_fx(:reverb, room: 0.5, mix: 0.7, damp: 0.3, amp: 0.75 * amp) do
+    sample :perc_impact1, amp: amp, rate: 1 if beat == 1
+    with_fx(:echo, decay: 0.25, mix: 0.6, phase: 0.25) do
+      sample :perc_impact1, amp: amp, rate: 0.75 if beat == 2
+    end
+  end
+  sleep 0.5
+end
+
+
+# live_loop :four_drums, sync: :sixteen do
+#   sample :bd_tek, amp: 5
+#   sleep 4
+# end

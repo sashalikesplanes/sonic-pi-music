@@ -1,0 +1,8 @@
+use_synth :hoover
+use_synth_defaults cutoff: :d2, res: 0.7, sustain: 4, note_slide: 2
+with_fx :wobble, phase: 0.25 do |w|
+  bass = sample :bd_haus
+  sleep 2
+  control bass, note: :c0
+  control w, phase: 2
+end
