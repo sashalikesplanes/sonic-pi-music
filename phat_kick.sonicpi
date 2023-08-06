@@ -1,75 +1,75 @@
-fadein = (ramp *line(0, 1, inclusive: true, steps: 64))
-fadeout = (ramp *line(1, 0, inclusive: true, steps: 64))
-
+fadein = (ramp(*line(0, 1, inclusive: true, steps: 64)))
+fadeout = (ramp(*line(1, 0, inclusive: true, steps: 64)))
 
 i_want_you = "/home/sasha/projects/sonic-pi-tracks/i_want_you_madeaux.wav"
 cocaine = "/home/sasha/projects/sonic-pi-tracks/samples/cocaine.wav"
 good_girl = "/home/sasha/projects/sonic-pi-tracks/samples/goog_girl.wav"
-use_bpm 120
-set_volume! 1
-reference_amp        = 0
-main_amp             = 0.5
-sample i_want_you, amp: reference_amp
+use_bpm(120)
+set_volume!(1)
+reference_amp = 0
+main_amp = 0.5
+sample(i_want_you, amp: reference_amp)
 
 main_hpf_cutoff_start = 10
 main_hpf_cutoff_end = 80
 
-live_loop :main do
-  with_fx :hpf, cutoff: main_hpf_cutoff_start do |hpf|
+live_loop(:main) do
+  with_fx(:hpf, cutoff: main_hpf_cutoff_start) do |hpf|
     tick(:main)
-    control hpf, cutoff: main_hpf_cutoff_end, cutoff_slide: 16
+    control(hpf, cutoff: main_hpf_cutoff_end, cutoff_slide: 16)
     # control hpf, cutoff: main_hpf_cutoff_end, cutoff_slide: 8
 
     # Amps
-    kick_amp = (ramp *([2,2,2,2,1.5,1.5,1.5,1.5,1]))
+    kick_amp = (ramp(*([2, 2, 2, 2, 1.5, 1.5, 1.5, 1.5, 1])))
     # kick_amp = [1.0]
-    hat_amp =  [0]
+    hat_amp = [0]
     sync_amp = [1.0]
 
     # Beats (all per 1/4 note)
-    kick_beats = [1,0,0,0]
-    poly_beats = [1,1,0,0,1,0,1,0,0,0,0]
+    kick_beats = [1, 0, 0, 0]
+    poly_beats = [1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0]
 
     # On which beat of the loop to trigger the sample
     line_beat = 13
     line_sample = good_girl
     # 13 is perfect for good_girl
-    
+
     # 4 on the floor kick
     in_thread do
-      with_fx :nrlpf, cutoff: 60 do |lpf|
-        with_fx :band_eq, freq: 50, res: 0.3 do
-          with_fx :reverb, mix: 0.2, room: 0.4, damp: 0.1, reps: 64 do
+      with_fx(:nrlpf, cutoff: 60) do |lpf|
+        with_fx(:band_eq, freq: 50, res: 0.3) do
+          with_fx(:reverb, mix: 0.2, room: 0.4, damp: 0.1, reps: 64) do
             # Get the kick in with a phat boost at the start
-            control lpf, amp: main_amp * kick_amp.ring.tick(:kick) * 2
+            control(lpf, amp: main_amp * kick_amp.ring.tick(:kick) * 2)
             case kick_beats.ring.tick
             when 1
-              sample :bd_haus, rate: 0.8, attack: 0.01
-              sample :hat_gnu, amp: 3
+              sample(:bd_haus, rate: 0.8, attack: 0.01)
+              sample(:hat_gnu, amp: 3)
             end
-            sleep 0.25
+
+            sleep(0.25)
           end
         end
       end
     end
-    
+
     # Polymeter
     in_thread do
-      use_synth :subpulse
-      with_fx :distortion, distort: 0.3, mix: 0.4, reps: 64 do |dist|
-        control dist, amp: main_amp * sync_amp.ring.tick(:sync) * 2
-        play (chord :ds1, :minor).choose, attack: 0.05, release: 0.2 if poly_beats.ring.tick == 1
-        sleep 0.25
+      use_synth(:subpulse)
+      with_fx(:distortion, distort: 0.3, mix: 0.4, reps: 64) do |dist|
+        control(dist, amp: main_amp * sync_amp.ring.tick(:sync) * 2)
+        play((chord(:ds1, :minor)).choose, attack: 0.05, release: 0.2) if poly_beats.ring.tick == 1
+        sleep(0.25)
       end
     end
 
     in_thread do
-      with_fx :echo, delay: 0.1, decay: 0.1, reps: 16 do
-        sample line_sample, rate: 0.9, start: 0.15, finish: 0.70, amp: 3 if line_beat == tick(:line)
-        sleep 1
+      with_fx(:echo, delay: 0.1, decay: 0.1, reps: 16) do
+        sample(line_sample, rate: 0.9, start: 0.15, finish: 0.70, amp: 3) if line_beat == tick(:line)
+        sleep(1)
       end
     end
 
-    sleep 16
+    sleep(16)
   end
 end
