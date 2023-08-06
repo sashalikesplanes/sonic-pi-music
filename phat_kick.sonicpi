@@ -1,11 +1,12 @@
 # Prepare samples
 cocaine = "/home/sasha/projects/sonic-pi-tracks/samples/cocaine.wav"
 # Perfect on beat 13 of 16
-define :good_girl do
-  sample("/home/sasha/projects/sonic-pi-tracks/samples/good_girl.wav", rate: 0.9, start: 0.15, finish: 0.70, amp: 3)
+define(:good_girl) do
+  sample("/home/sasha/projects/sonic-pi-tracks/samples/good_girl.wav", rate: 0.9, start: 0.15, finish: 0.7, amp: 3)
 end
-define :slip_it_in do
-  sample("/home/sasha/projects/sonic-pi-tracks/samples/slip_it_in.wav", rate: 0.9, start: 0.15, finish: 0.70, amp: 3)
+
+define(:slip_it_in) do
+  sample("/home/sasha/projects/sonic-pi-tracks/samples/slip_it_in.wav", rate: 0.85, start: 0.15, finish: 0.84, amp: 3)
 end
 
 fadein = (ramp(*line(0, 1, inclusive: true, steps: 64)))
@@ -37,8 +38,10 @@ live_loop(:main) do
     poly_beats = [1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0]
 
     # On which beat of the loop to trigger the sample
-    line_beat = 1
-    line_sample = :good_girl
+    line_beat = 13
+    define(:line_sample) do
+      good_girl
+    end
     # 13 is perfect for good_girl
 
     # 4 on the floor kick
@@ -72,7 +75,7 @@ live_loop(:main) do
 
     in_thread do
       with_fx(:echo, delay: 0.1, decay: 0.1, reps: 16) do
-         line_sample() if line_beat == tick(:line)
+        line_sample if line_beat == tick(:line)
         sleep(1)
       end
     end
