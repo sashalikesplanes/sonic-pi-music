@@ -2,7 +2,9 @@
 cocaine = "/home/sasha/projects/sonic-pi-tracks/samples/cocaine.wav"
 # Perfect on beat 13 of 16
 define(:good_girl) do
-  sample("/home/sasha/projects/sonic-pi-tracks/samples/good_girl.wav", rate: 0.9, start: 0.15, finish: 0.7, amp: 3)
+  with_fx(:distortion, distort: 0.3, mix: 0.5) do
+    sample("/home/sasha/projects/sonic-pi-tracks/samples/good_girl.wav", rate: 0.9, start: 0.15, finish: 0.7, amp: 3)
+  end
 end
 
 define(:slip_it_in) do
@@ -19,55 +21,47 @@ define(:spread_yourself) do
   )
 end
 
-fadein = (ramp(*line(0, 1, inclusive: true, steps: 64)))
-fadeout = (ramp(*line(1, 0, inclusive: true, steps: 64)))
-
 use_bpm(120)
 set_volume!(2.5)
 
-reference_amp = 0
+live_loop(:metro) do
+  sleep(4)
+end
 
-main_hpf_cutoff_start = 0
-main_hpf_cutoff_end = 0
-
-live_loop(:main) do
+live_loop(:control, sync: :metro) do
   set_mixer_control!(amp: 1, amp_slide: 2)
-  set_mixer_control!(hpf: 0, hpf_slide: 0)
+  set_mixer_control!(hpf: 0, hpf_slide: 4)
   set_mixer_control!(lpf: 130, lpf_slide: 4)
-  tick(:main)
-  # Amps
-  kick_amp = (ramp(*([2, 2, 2, 2, 1.5, 1.5, 1.5, 1.5, 1])))
-  # kick_amp = [1.0]
-  sync_amp = [0.3]
+  sleep(16)
+end
 
-  # Beats (all per 1/4 note)
-  kick_beats = [1, 0, 0, 0] + [1, 0, 1, 0] + [1, 0, 0, 0] * 1
-  sync_beats = [0,0,1,0] * 3 + [0,1,1,0]
-
-  # On which beat of the loop to trigger the sample
-  line_beat = 13
-  define(:line_sample) do
-    good_girl
-  end
-  # 13 is perfect for good_girl
-
-  # 4 on the floor kick
-  in_thread do
-    with_fx(:nrlpf, cutoff: 40) do |lpf|
-      with_fx(:bpf, center: 50, res: 0.3) do
-        with_fx(:reverb, mix: 0.2, room: 0.3, damp: 0.1, reps: 64) do
-          # Get the kick in with a phat boost at the start
-          control(lpf, amp: kick_amp.ring.tick(:kick) * 3)
-          case kick_beats.ring.tick
-          when 1
-            sample(:bd_haus, amp: 4.5, sustain: 0.25, release: 0.25, attach: 0.01, decay: 0)
-          end
-
-          sleep(0.25)
-        end
+live_loop(:drums, sync: :metro) do
+  with_fx(:nrlpf, cutoff: 40) do
+    with_fx(:bpf, center: 50, res: 0.3) do
+      with_fx(:reverb, mix: 0.2, room: 0.3, damp: 0.1) do
+        tick
+        sample(:bd_haus, amp: 4.5, sustain: 0.25, release: 0.25, attach: 0.01, decay: 0) if (spread(1, 4)).look
+        sample(:bd_haus, amp: 4.5, sustain: 0.25, release: 0.25, attach: 0.01, decay: 0) if (spread(1, 16)).rotate(6).look
       end
     end
   end
+
+  sleep(0.25)
+end
+
+reference_amp = 0
+
+# recording_start
+live_loop(:main) do
+  tick(:main)
+  # Amps
+  kick_amp = (ramp(*([2, 2, 2, 2, 1.5, 1.5, 1.5, 1.5, 1])))
+  kick_amp = [1.0]
+  sync_amp = [0]
+
+  # Beats (all per 1/4 note)
+  kick_beats = [1, 0, 0, 0] + [1, 0, 1, 0] + [1, 0, 0, 0] * 1
+  sync_beats = [0, 0, 1, 0] * 3 + [0, 1, 1, 0]
 
   # Polymeter
   in_thread do
@@ -89,12 +83,5 @@ live_loop(:main) do
     end
   end
 
-  in_thread do
-    with_fx(:distortion, distort: 0.3, mix: 0.5, reps: 16) do
-      line_sample if line_beat == tick(:line)
-      sleep(1)
-    end
-  end
-
-  sleep(16)
+  sleep(100)
 end
